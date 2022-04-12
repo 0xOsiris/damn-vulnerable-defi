@@ -32,6 +32,7 @@ contract SideEntranceLenderPool {
         
         IFlashLoanEtherReceiver(msg.sender).execute{value: amount}();
 
+        //Vulnerability.. I think
         require(address(this).balance >= balanceBefore, "Flash loan hasn't been paid back");        
     }
 }

@@ -27,12 +27,18 @@
     "@openzeppelin/contracts": "4.3.2",
     "@openzeppelin/contracts-upgradeable": "4.3.2",
     "@openzeppelin/hardhat-upgrades": "1.10.0",
+    "@openzeppelin/test-environment": "^0.1.9",
     "@uniswap/v2-core": "1.0.1",
     "@uniswap/v2-periphery": "1.1.0-beta.0",
     "chai": "4.3.4",
     "ethereum-waffle": "3.4.0",
     "ethers": "5.4.7",
     "hardhat": "2.6.4",
-    "hardhat-dependency-compiler": "1.1.1"
+    "hardhat-dependency-compiler": "1.1.1",
+    "web3": "^1.7.3"
+  },
+  "dependencies": {
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "web3-eth-abi": "^1.7.1"
   }
 }

