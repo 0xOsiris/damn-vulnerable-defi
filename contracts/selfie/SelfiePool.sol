@@ -34,7 +34,7 @@ contract SelfiePool is ReentrancyGuard {
         require(balanceBefore >= borrowAmount, "Not enough tokens in pool");
         
         token.transfer(msg.sender, borrowAmount);        
-        
+        //Call's receiveTokens on sender account
         require(msg.sender.isContract(), "Sender must be a deployed contract");
         msg.sender.functionCall(
             abi.encodeWithSignature(

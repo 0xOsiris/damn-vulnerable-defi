@@ -23,6 +23,7 @@ contract UnstoppableLender is ReentrancyGuard {
         damnValuableToken = IERC20(tokenAddress);
     }
 
+    //
     function depositTokens(uint256 amount) external nonReentrant {
         require(amount > 0, "Must deposit at least one token");
         // Transfer token from sender. Sender must have first approved them.
@@ -37,6 +38,7 @@ contract UnstoppableLender is ReentrancyGuard {
         require(balanceBefore >= borrowAmount, "Not enough tokens in pool");
 
         // Ensured by the protocol via the `depositTokens` function
+        //==> if poolBalance < balanceBefore revert...
         assert(poolBalance == balanceBefore);
         
         damnValuableToken.transfer(msg.sender, borrowAmount);
